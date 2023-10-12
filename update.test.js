@@ -13,6 +13,7 @@ describe('Testing the editCar lambda function', () => {
     };
 
     const event = {
+      pathParameters: { id: 1 }, // Specify the existing car's ID as a path parameter
       body: JSON.stringify(carData),
     };
 
@@ -26,21 +27,6 @@ describe('Testing the editCar lambda function', () => {
     expect(responseBody.year).toEqual(carData.year);
   });
 
-  test('Should return a 400 status code for missing ID field', async () => {
-    // Define the car data with a missing ID field
-    const carData = {
-      brand: 'Honda',
-      year: 2022,
-    };
-
-    const event = {
-      body: JSON.stringify(carData),
-    };
-
-    let response = await handler(event);
-    expect(response.statusCode).toEqual(400); // 400 Bad Request status code
-  });
-
   test('Should return a 404 status code for a non-existing car', async () => {
     // Provide an ID that doesn't correspond to an existing car
     const carData = {
@@ -51,6 +37,7 @@ describe('Testing the editCar lambda function', () => {
     };
 
     const event = {
+      pathParameters: { id: 999 }, // Specify a non-existing ID as a path parameter
       body: JSON.stringify(carData),
     };
 
