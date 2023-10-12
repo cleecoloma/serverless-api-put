@@ -15,38 +15,50 @@ const carsModel = dynamoose.model('Cars', carsSchema);
 
 exports.handler = async (event) => {
   try {
+    // Parse the incoming JSON request body
     const requestBody = JSON.parse(event.body);
 
-    if (
-      !requestBody ||
-      !requestBody.id ||
-      !requestBody.brand ||
-      !requestBody.model ||
-      !requestBody.year
-    ) {
+    // Check if the required fields are present in the request
+    if (!requestBody || !requestBody.id) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: 'Missing required fields.' }),
+        body: JSON.stringify({ message: 'Missing required ID field.' }),
       };
     }
 
-    const newCar = new carsModel({
-      id: requestBody.id,
-      brand: requestBody.brand,
-      model: requestBody.model,
-      year: requestBody.year,
-    });
+    // Retrieve the car to be edited from the database
+    const existingCar = await carsModel.get(requestBody.id);
 
-    await newCar.save();
+    // Check if the car with the provided ID exists
+    if (!existingCar) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ message: 'Car not found.' }),
+      };
+    }
+
+    // Update the car's attributes based on the request
+    if (requestBody.brand) {
+      existingCar.brand = requestBody.brand;
+    }
+    if (requestBody.model) {
+      existingCar.model = requestBody.model;
+    }
+    if (requestBody.year) {
+      existingCar.year = requestBody.year;
+    }
+
+    // Save the updated car back to the database
+    await existingCar.save();
 
     const response = {
-      statusCode: 201, // 201 Created status code for successful resource creation
-      body: JSON.stringify(newCar),
+      statusCode: 200, // 200 OK status code for successful update
+      body: JSON.stringify(existingCar),
     };
 
     return response;
   } catch (error) {
-    console.error('Error creating a new car:', error);
+    console.error('Error updating the car:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ message: 'Internal Server Error' }),
