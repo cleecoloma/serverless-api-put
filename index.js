@@ -15,19 +15,21 @@ const carsModel = dynamoose.model('Cars', carsSchema);
 
 exports.handler = async (event) => {
   try {
-    // Parse the incoming JSON request body
-    const requestBody = JSON.parse(event.body);
+    // Extract the 'id' from the path parameters
+    const { id } = event.pathParameters;
 
-    // Check if the required fields are present in the request
-    if (!requestBody || !requestBody.id) {
+    // Check if the 'id' is present in the path parameters
+    if (!id) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: 'Missing required ID field.' }),
+        body: JSON.stringify({
+          message: 'Missing required ID field in path parameters.',
+        }),
       };
     }
 
     // Retrieve the car to be edited from the database
-    const existingCar = await carsModel.get(requestBody.id);
+    const existingCar = await carsModel.get(id);
 
     // Check if the car with the provided ID exists
     if (!existingCar) {
@@ -37,15 +39,21 @@ exports.handler = async (event) => {
       };
     }
 
-    // Update the car's attributes based on the request
-    if (requestBody.brand) {
-      existingCar.brand = requestBody.brand;
-    }
-    if (requestBody.model) {
-      existingCar.model = requestBody.model;
-    }
-    if (requestBody.year) {
-      existingCar.year = requestBody.year;
+    // Parse the incoming JSON request body, if needed
+    let requestBody;
+    if (event.body) {
+      requestBody = JSON.parse(event.body);
+
+      // Update the car's attributes based on the request
+      if (requestBody.brand) {
+        existingCar.brand = requestBody.brand;
+      }
+      if (requestBody.model) {
+        existingCar.model = requestBody.model;
+      }
+      if (requestBody.year) {
+        existingCar.year = requestBody.year;
+      }
     }
 
     // Save the updated car back to the database
