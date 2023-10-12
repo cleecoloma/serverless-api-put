@@ -29,7 +29,7 @@ exports.handler = async (event) => {
     }
 
     // Retrieve the car to be edited from the database
-    const existingCar = await carsModel.get(id);
+    const existingCar = await carsModel.get(parseInt(id));
     console.log("Heres existing car: ", existingCar)
     // Check if the car with the provided ID exists
     if (!existingCar) {
